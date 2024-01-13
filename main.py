@@ -1,9 +1,9 @@
-import pygame, sys
+import pygame, sys, math
 from pygame.locals import *
 pygame.init()
 
 #constants/global variables
-FPS_LIMIT = 60
+FPS_LIMIT = 120
 SCREEN_DIMS = (800, 800)
 PIECE_DIMS = (SCREEN_DIMS[0] / 8, SCREEN_DIMS[1] / 8)
 pygame.display.set_caption("Chess by Luke")
@@ -79,7 +79,7 @@ class Piece:
         self.hitbox = hitbox
         self.alive = alive
 
-    def IsValidMove(x, y):
+    def isValidMove(x, y):
         print("this hard")
 
 #functions
@@ -137,20 +137,26 @@ def drawGameBoard():
         if whitePieces[p].alive:
             screen.blit(whitePieces[p].img, whitePieces[p].position)
 
+#when moving a piece automatically snap to grid
+def snapPiece(relativeLoc):
+    newPos = (math.floor(relativeLoc[0] / 100) * 100, math.floor(relativeLoc[1] / 100) * 100)
+    #print(newPos)
+    if movingColor == "b":
+        blackPieces[movingName].position = newPos
+        blackPieces[movingName].hitbox.topleft = newPos
+    if movingColor == "w":
+        whitePieces[movingName].position = newPos
+        whitePieces[movingName].hitbox.topleft = newPos
+
 #game play
 initGameBoard()
 while True:
     drawGameBoard()
     mouseLoc = pygame.mouse.get_pos()
-    movingLoc = (mouseLoc[0] - PIECE_DIMS[0] / 2, mouseLoc[1] - PIECE_DIMS[1] / 2)
 
     if moving:
-        if movingColor == "b":
-            blackPieces[movingName].position = movingLoc
-            blackPieces[movingName].hitbox.topleft = movingLoc
-        if movingColor == "w":
-            whitePieces[movingName].position = movingLoc
-            whitePieces[movingName].hitbox.topleft = movingLoc
+        movingLoc = (mouseLoc[0] - PIECE_DIMS[0] / 2, mouseLoc[1] - PIECE_DIMS[1] / 2)
+        snapPiece(mouseLoc)
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -159,6 +165,9 @@ while True:
         if event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
                 if moving:
+                    #fit the piece into the grid
+                    snapPiece(mouseLoc)
+                    #reset everything
                     moving = False
                     movingName = ""
                     movingColor = ""
