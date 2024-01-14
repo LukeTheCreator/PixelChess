@@ -6,6 +6,8 @@ pygame.init()
 FPS_LIMIT = 120
 SCREEN_DIMS = (800, 800)
 PIECE_DIMS = (SCREEN_DIMS[0] / 8, SCREEN_DIMS[1] / 8)
+BLOCK_SIZE = SCREEN_DIMS[0] / 8
+BLOCK_SIZE_2 = BLOCK_SIZE * 2
 pygame.display.set_caption("Chess by Luke")
 screen = pygame.display.set_mode(SCREEN_DIMS, 0, 32)
 clock = pygame.time.Clock()
@@ -68,6 +70,7 @@ knightImg_b = pygame.transform.scale(knightImg_b, PIECE_DIMS)
 bishopImg_b = pygame.transform.scale(bishopImg_b, PIECE_DIMS)
 queenImg_b = pygame.transform.scale(queenImg_b, PIECE_DIMS)
 kingImg_b = pygame.transform.scale(kingImg_b, PIECE_DIMS)
+validImg.set_alpha(128)
 
 #classes
 class Piece:
@@ -78,9 +81,113 @@ class Piece:
         self.position = position
         self.hitbox = hitbox
         self.alive = alive
+        self.firstMove = True
+        self.validMoves = []
 
-    def isValidMove(x, y):
-        print("this hard")
+    def checkValidMoves(self):
+        self.validMoves.clear()
+        if "Pawn" in self.name:
+            if self.color == "b":
+                if self.firstMove:
+                    self.validMoves.append((self.position[0], self.position[1] + BLOCK_SIZE_2))
+                self.validMoves.append((self.position[0], self.position[1] + BLOCK_SIZE))
+            elif self.color == "w":
+                if self.firstMove:
+                    self.validMoves.append((self.position[0], self.position[1] - BLOCK_SIZE_2))
+                self.validMoves.append((self.position[0], self.position[1] - BLOCK_SIZE))
+        elif "Rook" in self.name:
+            tempx, tempy = self.position
+            while tempx <= 700:
+                tempx += 100
+                self.validMoves.append((tempx, self.position[1]))
+            tempx, tempy = self.position
+            while tempx >= 0:
+                tempx -= 100
+                self.validMoves.append((tempx, self.position[1]))
+            tempx, tempy = self.position
+            while tempy <= 700:
+                tempy += 100
+                self.validMoves.append((self.position[0], tempy))
+            tempx, tempy = self.position
+            while tempy >= 0:
+                tempy -= 100
+                self.validMoves.append((self.position[0], tempy))
+        elif "Knight" in self.name:
+            self.validMoves.append((self.position[0] + BLOCK_SIZE, self.position[1] + BLOCK_SIZE_2))
+            self.validMoves.append((self.position[0] - BLOCK_SIZE, self.position[1] + BLOCK_SIZE_2))
+            self.validMoves.append((self.position[0] + BLOCK_SIZE_2, self.position[1] + BLOCK_SIZE))
+            self.validMoves.append((self.position[0] - BLOCK_SIZE_2, self.position[1] + BLOCK_SIZE))
+            self.validMoves.append((self.position[0] + BLOCK_SIZE, self.position[1] - BLOCK_SIZE_2))
+            self.validMoves.append((self.position[0] - BLOCK_SIZE, self.position[1] - BLOCK_SIZE_2))
+            self.validMoves.append((self.position[0] + BLOCK_SIZE_2, self.position[1] - BLOCK_SIZE))
+            self.validMoves.append((self.position[0] - BLOCK_SIZE_2, self.position[1] - BLOCK_SIZE))
+        elif "Bishop" in self.name:
+            tempx, tempy = self.position
+            while tempx <= 700:
+                tempx += 100
+                tempy += 100
+                self.validMoves.append((tempx, tempy))
+            tempx, tempy = self.position
+            while tempx >= 0:
+                tempx -= 100
+                tempy -= 100
+                self.validMoves.append((tempx, tempy))
+            tempx, tempy = self.position
+            while tempx <= 700:
+                tempx += 100
+                tempy -= 100
+                self.validMoves.append((tempx, tempy))
+            tempx, tempy = self.position
+            while tempx >= 0:
+                tempx -= 100
+                tempy += 100
+                self.validMoves.append((tempx, tempy))
+        elif "King" in self.name:
+            self.validMoves.append((self.position[0] + BLOCK_SIZE, self.position[1] + BLOCK_SIZE))
+            self.validMoves.append((self.position[0] - BLOCK_SIZE, self.position[1] + BLOCK_SIZE))
+            self.validMoves.append((self.position[0] + BLOCK_SIZE, self.position[1] - BLOCK_SIZE))
+            self.validMoves.append((self.position[0] - BLOCK_SIZE, self.position[1] - BLOCK_SIZE))
+            self.validMoves.append((self.position[0] + BLOCK_SIZE, self.position[1]))
+            self.validMoves.append((self.position[0] - BLOCK_SIZE, self.position[1]))
+            self.validMoves.append((self.position[0], self.position[1] + BLOCK_SIZE))
+            self.validMoves.append((self.position[0], self.position[1] - BLOCK_SIZE))
+        elif "Queen" in self.name:
+            tempx, tempy = self.position
+            while tempx <= 700:
+                tempx += 100
+                self.validMoves.append((tempx, self.position[1]))
+            tempx, tempy = self.position
+            while tempx >= 0:
+                tempx -= 100
+                self.validMoves.append((tempx, self.position[1]))
+            tempx, tempy = self.position
+            while tempy <= 700:
+                tempy += 100
+                self.validMoves.append((self.position[0], tempy))
+            tempx, tempy = self.position
+            while tempy >= 0:
+                tempy -= 100
+                self.validMoves.append((self.position[0], tempy))
+            tempx, tempy = self.position
+            while tempx <= 700:
+                tempx += 100
+                tempy += 100
+                self.validMoves.append((tempx, tempy))
+            tempx, tempy = self.position
+            while tempx >= 0:
+                tempx -= 100
+                tempy -= 100
+                self.validMoves.append((tempx, tempy))
+            tempx, tempy = self.position
+            while tempx <= 700:
+                tempx += 100
+                tempy -= 100
+                self.validMoves.append((tempx, tempy))
+            tempx, tempy = self.position
+            while tempx >= 0:
+                tempx -= 100
+                tempy += 100
+                self.validMoves.append((tempx, tempy))
 
 #functions
 def createPiece(name, color, img, position):
@@ -136,17 +243,27 @@ def drawGameBoard():
     for p in whitePieces:
         if whitePieces[p].alive:
             screen.blit(whitePieces[p].img, whitePieces[p].position)
+    if moving:
+        drawValidMoves()
 
 #when moving a piece automatically snap to grid
 def snapPiece(relativeLoc):
     newPos = (math.floor(relativeLoc[0] / 100) * 100, math.floor(relativeLoc[1] / 100) * 100)
-    #print(newPos)
     if movingColor == "b":
         blackPieces[movingName].position = newPos
         blackPieces[movingName].hitbox.topleft = newPos
     if movingColor == "w":
         whitePieces[movingName].position = newPos
         whitePieces[movingName].hitbox.topleft = newPos
+
+#draws valid moves to the screen
+def drawValidMoves():
+    if movingColor == "b":
+        for move in blackPieces[movingName].validMoves:
+            screen.blit(validImg, move)
+    if movingColor == "w":
+        for move in whitePieces[movingName].validMoves:
+            screen.blit(validImg, move)
 
 #game play
 initGameBoard()
@@ -155,7 +272,7 @@ while True:
     mouseLoc = pygame.mouse.get_pos()
 
     if moving:
-        movingLoc = (mouseLoc[0] - PIECE_DIMS[0] / 2, mouseLoc[1] - PIECE_DIMS[1] / 2)
+        movingLoc = (mouseLoc[0] - BLOCK_SIZE / 2, mouseLoc[1] - BLOCK_SIZE / 2)
         snapPiece(mouseLoc)
     
     for event in pygame.event.get():
@@ -165,9 +282,22 @@ while True:
         if event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
                 if moving:
+                    newPos = (math.floor(mouseLoc[0] / 100) * 100, math.floor(mouseLoc[1] / 100) * 100)
+                    if movingColor == "b":
+                        if newPos not in blackPieces[movingName].validMoves:
+                            print("not a valid move")
+                            continue
+                    elif movingColor == "w":
+                        if newPos not in whitePieces[movingName].validMoves:
+                            print("not a valid move")
+                            continue
                     #fit the piece into the grid
                     snapPiece(mouseLoc)
                     #reset everything
+                    if movingColor == "b":
+                        blackPieces[movingName].firstMove = False
+                    elif movingColor == "w":
+                        whitePieces[movingName].firstMove = False
                     moving = False
                     movingName = ""
                     movingColor = ""
@@ -176,14 +306,14 @@ while True:
                     for p in blackPieces:
                         if blackPieces[p].hitbox.collidepoint(event.pos):
                             #check what moves they can make
-                            print(p)
+                            blackPieces[p].checkValidMoves()
                             moving = True
                             movingName = p
                             movingColor = "b"
                     for p in whitePieces:
                         if whitePieces[p].hitbox.collidepoint(event.pos):
                             #check what moves they can make
-                            print(p)
+                            whitePieces[p].checkValidMoves()
                             moving = True
                             movingName = p
                             movingColor = "w"
