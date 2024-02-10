@@ -17,6 +17,7 @@ moving = False
 movingName = ""
 movingColor = ""
 movingLoc = (0, 0)
+clickedLoc = (0, 0)
 EMPTY = 0
 PAWN_W = 1
 ROOK_W = 2
@@ -93,52 +94,80 @@ class Piece:
     def checkValidMoves(self):
         self.validMoves.clear()
         check = (True, "")
+
+        #add the square they are already on so u have the option to not move that piece
+        self.validMoves.append((self.position))
+
         if "Pawn" in self.name:
             if self.color == "b":
                 if self.firstMove:
                     check = checkTileEmpty((self.position[0], self.position[1] + TILE_SIZE_2))
-                    if check[0] or (not check[0] and check[1] == "w"):
+                    if check[0]:
                         self.validMoves.append((self.position[0], self.position[1] + TILE_SIZE_2))
                 check = checkTileEmpty((self.position[0], self.position[1] + TILE_SIZE))
-                if check[0] or (not check[0] and check[1] == "w"):
+                if check[0]:
                     self.validMoves.append((self.position[0], self.position[1] + TILE_SIZE))
+                check = checkTileEmpty((self.position[0] + TILE_SIZE, self.position[1] + TILE_SIZE))
+                if not check[0] and check[1] == "w":
+                    self.validMoves.append((self.position[0] + TILE_SIZE, self.position[1] + TILE_SIZE))
+                check = checkTileEmpty((self.position[0] - TILE_SIZE, self.position[1] + TILE_SIZE))
+                if not check[0] and check[1] == "w":
+                    self.validMoves.append((self.position[0] - TILE_SIZE, self.position[1] + TILE_SIZE))
             elif self.color == "w":
                 if self.firstMove:
                     check = checkTileEmpty((self.position[0], self.position[1] - TILE_SIZE_2))
-                    if check[0] or (not check[0] and check[1] == "b"):
+                    if check[0]:
                         self.validMoves.append((self.position[0], self.position[1] - TILE_SIZE_2))
                 check = checkTileEmpty((self.position[0], self.position[1] - TILE_SIZE))
-                if check[0] or (not check[0] and check[1] == "b"):
+                if check[0]:
                     self.validMoves.append((self.position[0], self.position[1] - TILE_SIZE))
+                check = checkTileEmpty((self.position[0] - TILE_SIZE, self.position[1] - TILE_SIZE))
+                if not check[0] and check[1] == "b":
+                    self.validMoves.append((self.position[0] - TILE_SIZE, self.position[1] - TILE_SIZE))
+                check = checkTileEmpty((self.position[0] + TILE_SIZE, self.position[1] - TILE_SIZE))
+                if not check[0] and check[1] == "b":
+                    self.validMoves.append((self.position[0] + TILE_SIZE, self.position[1] - TILE_SIZE))
 
         elif "Rook" in self.name:
             tempx, tempy = self.position
             while tempx <= 700:
                 tempx += 100
                 check = checkTileEmpty((tempx, self.position[1]))
-                if check[0] or (not check[0] and ((self.color == "w" and check[1] == "b") or (self.color == "b" and check[1] == "w"))):
+                if check[0]:
                     self.validMoves.append((tempx, self.position[1]))
+                elif not check[0] and ((self.color == "w" and check[1] == "b") or (self.color == "b" and check[1] == "w")):
+                    self.validMoves.append((tempx, self.position[1]))
+                    break
                 else: break
             tempx, tempy = self.position
             while tempx >= 0:
                 tempx -= 100
                 check = checkTileEmpty((tempx, self.position[1]))
-                if check[0] or (not check[0] and ((self.color == "w" and check[1] == "b") or (self.color == "b" and check[1] == "w"))):
+                if check[0]:
                     self.validMoves.append((tempx, self.position[1]))
+                elif not check[0] and ((self.color == "w" and check[1] == "b") or (self.color == "b" and check[1] == "w")):
+                    self.validMoves.append((tempx, self.position[1]))
+                    break
                 else: break
             tempx, tempy = self.position
             while tempy <= 700:
                 tempy += 100
                 check = checkTileEmpty((self.position[0], tempy))
-                if check[0] or (not check[0] and ((self.color == "w" and check[1] == "b") or (self.color == "b" and check[1] == "w"))):
+                if check[0]:
                     self.validMoves.append((self.position[0], tempy))
+                elif not check[0] and ((self.color == "w" and check[1] == "b") or (self.color == "b" and check[1] == "w")):
+                    self.validMoves.append((self.position[0], tempy))
+                    break
                 else: break
             tempx, tempy = self.position
             while tempy >= 0:
                 tempy -= 100
                 check = checkTileEmpty((self.position[0], tempy))
-                if check[0] or (not check[0] and ((self.color == "w" and check[1] == "b") or (self.color == "b" and check[1] == "w"))):
+                if check[0]:
                     self.validMoves.append((self.position[0], tempy))
+                elif not check[0] and ((self.color == "w" and check[1] == "b") or (self.color == "b" and check[1] == "w")):
+                    self.validMoves.append((self.position[0], tempy))
+                    break
                 else: break
 
         elif "Knight" in self.name:
@@ -363,6 +392,8 @@ def drawValidMoves():
             check = checkTileEmpty(move)
             if not check[0] and check[1] == "w":
                 screen.blit(validImgRed, move)
+            elif move == clickedLoc:
+                screen.blit(validImgGreen, move)
             else:
                 screen.blit(validImg, move)
     if movingColor == "w":
@@ -370,6 +401,8 @@ def drawValidMoves():
             check = checkTileEmpty(move)
             if not check[0] and check[1] == "b":
                 screen.blit(validImgRed, move)
+            elif move == clickedLoc:
+                screen.blit(validImgGreen, move)
             else:
                 screen.blit(validImg, move)
 
@@ -412,9 +445,9 @@ while True:
                     # fit the piece into the grid
                     snapPiece(mouseLoc)
                     # reset everything
-                    if movingColor == "b":
+                    if movingColor == "b" and clickedLoc != newPos:
                         blackPieces[movingName].firstMove = False
-                    elif movingColor == "w":
+                    elif movingColor == "w" and clickedLoc != newPos:
                         whitePieces[movingName].firstMove = False
                     moving = False
                     movingName = ""
@@ -428,6 +461,7 @@ while True:
                             moving = True
                             movingName = p
                             movingColor = "b"
+                            clickedLoc = blackPieces[p].position
                     for p in whitePieces:
                         if whitePieces[p].hitbox.collidepoint(event.pos):
                             # check what moves they can make
@@ -435,6 +469,7 @@ while True:
                             moving = True
                             movingName = p
                             movingColor = "w"
+                            clickedLoc = whitePieces[p].position
 
     pygame.display.update()
     clock.tick(FPS_LIMIT)
