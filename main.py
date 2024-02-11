@@ -4,13 +4,18 @@ pygame.init()
 
 # constants/global variables
 FPS_LIMIT = 120
-SCREEN_DIMS = (800, 800)
-PIECE_DIMS = (SCREEN_DIMS[0] / 8, SCREEN_DIMS[1] / 8)
-TILE_SIZE = SCREEN_DIMS[0] / 8
+SCREEN_DIMS = (1200, 800)
+PIECE_DIMS = (SCREEN_DIMS[1] / 8, SCREEN_DIMS[1] / 8)
+TILE_SIZE = SCREEN_DIMS[1] / 8
 TILE_SIZE_2 = TILE_SIZE * 2
 pygame.display.set_caption("Chess by Luke")
 screen = pygame.display.set_mode(SCREEN_DIMS, 0, 32)
 clock = pygame.time.Clock()
+font = pygame.font.SysFont("Arial", 32)
+fontSmall = pygame.font.SysFont("Arial", 16)
+turnText = font.render("Player's turn: White", True, (0, 0, 0))
+pvpText = fontSmall.render("Player vs Player", True, (0, 0, 0))
+pvbText = fontSmall.render("Player vs Bot", True, (0, 0, 0))
 blackPieces = {}
 whitePieces = {}
 moving = False
@@ -42,6 +47,11 @@ gameboard = [[ROOK_B, KNIGHT_B, BISHOP_B, QUEEN_B, KING_B, BISHOP_B, KNIGHT_B, R
 
 # importing all images
 boardImg = pygame.image.load("imgs/greenboard.png")
+whitePiecesImg = pygame.image.load("imgs/whitePiecesFull.png")
+blackPiecesImg = pygame.image.load("imgs/blackPiecesFull.png")
+redXImg = pygame.image.load("imgs/redX.png")
+pvpButtonImg = pygame.image.load("imgs/pvpbutton.png")
+pvbButtonImg = pygame.image.load("imgs/pvbbutton.png")
 validImg = pygame.image.load("imgs/valid.png")
 validImgRed = pygame.image.load("imgs/validred.png")
 validImgGreen = pygame.image.load("imgs/validgreen.png")
@@ -59,7 +69,12 @@ queenImg_b = pygame.image.load("imgs/blackqueen.png")
 kingImg_b = pygame.image.load("imgs/blackking.png")
 
 # scaling them up
-boardImg = pygame.transform.scale(boardImg, SCREEN_DIMS)
+boardImg = pygame.transform.scale(boardImg, (SCREEN_DIMS[1], SCREEN_DIMS[1]))
+whitePiecesImg = pygame.transform.scale(whitePiecesImg, (249, 96))
+blackPiecesImg = pygame.transform.scale(blackPiecesImg, (249, 96))
+redXImg = pygame.transform.scale(redXImg, (27, 33))
+pvpButtonImg = pygame.transform.scale(pvpButtonImg, (96, 96))
+pvbButtonImg = pygame.transform.scale(pvbButtonImg, (96, 96))
 validImg = pygame.transform.scale(validImg, PIECE_DIMS)
 validImgRed = pygame.transform.scale(validImgRed, PIECE_DIMS)
 validImgGreen = pygame.transform.scale(validImgGreen, PIECE_DIMS)
@@ -401,6 +416,7 @@ def initGameBoard():
 
 # draws the board to the screen and every piece that is on top of it
 def drawGameBoard():
+    screen.fill((180, 180, 180))
     screen.blit(boardImg, (0, 0))
     for p in blackPieces:
         if blackPieces[p].alive:
@@ -415,6 +431,16 @@ def drawGameBoard():
             screen.blit(blackPieces[movingName].img, blackPieces[movingName].position)
         if movingColor == "w":
             screen.blit(whitePieces[movingName].img, whitePieces[movingName].position)
+    screen.blit(turnText, (880, 100))
+    screen.blit(blackPiecesImg, (880, 200))
+    screen.blit(whitePiecesImg, (880, 350))
+    screen.blit(redXImg, (886, 212)) # 30px horizontally 39px vertically
+    screen.blit(redXImg, (916, 212))
+    screen.blit(redXImg, (916, 251))
+    screen.blit(pvpButtonImg, (880, 600))
+    screen.blit(pvbButtonImg, (1033, 600))
+    screen.blit(pvpText, (881, 700))
+    screen.blit(pvbText, (1042, 700))
 
 # when moving a piece automatically snap to grid
 def snapPiece(relativeLoc):
@@ -466,6 +492,7 @@ def checkTileEmpty(pos):
     return (not found, color)
 
 # game play
+#print(pygame.font.get_fonts())
 initGameBoard()
 while True:
     drawGameBoard()
