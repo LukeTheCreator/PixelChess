@@ -13,16 +13,22 @@ screen = pygame.display.set_mode(SCREEN_DIMS, 0, 32)
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 32)
 fontSmall = pygame.font.SysFont("Arial", 16)
-turnText = font.render("Player's turn: White", True, (0, 0, 0))
+whiteTurnText = font.render("Player's turn: White", True, (0, 0, 0))
+blackTurnText = font.render("Player's turn: Black", True, (0, 0, 0))
 pvpText = fontSmall.render("Player vs Player", True, (0, 0, 0))
 pvbText = fontSmall.render("Player vs Bot", True, (0, 0, 0))
 blackPieces = {}
 whitePieces = {}
+whiteTurn = True
+pvp = True
+pvpRect = pygame.Rect(880, 600, 96, 96)
+pvbRect = pygame.Rect(1033, 600, 96, 96)
 moving = False
 movingName = ""
 movingColor = ""
 movingLoc = (0, 0)
 clickedLoc = (0, 0)
+mouseHold = False
 EMPTY = 0
 PAWN_W = 1
 ROOK_W = 2
@@ -52,6 +58,7 @@ blackPiecesImg = pygame.image.load("imgs/blackPiecesFull.png")
 redXImg = pygame.image.load("imgs/redX.png")
 pvpButtonImg = pygame.image.load("imgs/pvpbutton.png")
 pvbButtonImg = pygame.image.load("imgs/pvbbutton.png")
+blackLineImg = pygame.image.load("imgs/blackline.png")
 validImg = pygame.image.load("imgs/valid.png")
 validImgRed = pygame.image.load("imgs/validred.png")
 validImgGreen = pygame.image.load("imgs/validgreen.png")
@@ -75,6 +82,7 @@ blackPiecesImg = pygame.transform.scale(blackPiecesImg, (249, 96))
 redXImg = pygame.transform.scale(redXImg, (27, 33))
 pvpButtonImg = pygame.transform.scale(pvpButtonImg, (96, 96))
 pvbButtonImg = pygame.transform.scale(pvbButtonImg, (96, 96))
+blackLineImg = pygame.transform.scale(blackLineImg, (96, 96))
 validImg = pygame.transform.scale(validImg, PIECE_DIMS)
 validImgRed = pygame.transform.scale(validImgRed, PIECE_DIMS)
 validImgGreen = pygame.transform.scale(validImgGreen, PIECE_DIMS)
@@ -96,13 +104,14 @@ validImgGreen.set_alpha(128)
 
 # classes
 class Piece:
-    def __init__(self, name, color, img, position, hitbox, alive):
+    def __init__(self, name, color, img, position, hitbox, alive, redXpos):
         self.name = name
         self.color = color
         self.img = img
         self.position = position
         self.hitbox = hitbox
         self.alive = alive
+        self.redXpos = redXpos
         self.firstMove = True
         self.validMoves = []
 
@@ -370,9 +379,9 @@ class Piece:
                 else: break
 
 # functions
-def createPiece(name, color, img, position):
+def createPiece(name, color, img, position, redXpos):
     newRect = pygame.Rect(position, PIECE_DIMS)
-    p = Piece(name, color, img, position, newRect, True)
+    p = Piece(name, color, img, position, newRect, True, redXpos)
     if(color == "b"):
         blackPieces[name] = p
     elif(color == "w"):
@@ -380,50 +389,70 @@ def createPiece(name, color, img, position):
 
 def initGameBoard():
     # white
-    createPiece("wPawn1", "w", pawnImg_w, (0, 600))
-    createPiece("wPawn2", "w", pawnImg_w, (100, 600))
-    createPiece("wPawn3", "w", pawnImg_w, (200, 600))
-    createPiece("wPawn4", "w", pawnImg_w, (300, 600))
-    createPiece("wPawn5", "w", pawnImg_w, (400, 600))
-    createPiece("wPawn6", "w", pawnImg_w, (500, 600))
-    createPiece("wPawn7", "w", pawnImg_w, (600, 600))
-    createPiece("wPawn8", "w", pawnImg_w, (700, 600))
-    createPiece("wRook1", "w", rookImg_w, (0, 700))
-    createPiece("wKnight1", "w", knightImg_w, (100, 700))
-    createPiece("wBishop1", "w", bishopImg_w, (200, 700))
-    createPiece("wQueen", "w", queenImg_w, (300, 700))
-    createPiece("wKing", "w", kingImg_w, (400, 700))
-    createPiece("wBishop2", "w", bishopImg_w, (500, 700))
-    createPiece("wKnight2", "w", knightImg_w, (600, 700))
-    createPiece("wRook2", "w", rookImg_w, (700, 700))
+    createPiece("wPawn1", "w", pawnImg_w, (0, 600), (886, 362))
+    createPiece("wPawn2", "w", pawnImg_w, (100, 600), (916, 362))
+    createPiece("wPawn3", "w", pawnImg_w, (200, 600), (946, 362))
+    createPiece("wPawn4", "w", pawnImg_w, (300, 600), (976, 362))
+    createPiece("wPawn5", "w", pawnImg_w, (400, 600), (1006, 362))
+    createPiece("wPawn6", "w", pawnImg_w, (500, 600), (1036, 362))
+    createPiece("wPawn7", "w", pawnImg_w, (600, 600), (1066, 362))
+    createPiece("wPawn8", "w", pawnImg_w, (700, 600), (1096, 362))
+    createPiece("wRook1", "w", rookImg_w, (0, 700), (886, 401))
+    createPiece("wKnight1", "w", knightImg_w, (100, 700), (916, 401))
+    createPiece("wBishop1", "w", bishopImg_w, (200, 700), (946, 401))
+    createPiece("wQueen", "w", queenImg_w, (300, 700), (976, 401))
+    createPiece("wKing", "w", kingImg_w, (400, 700), (1006, 401))
+    createPiece("wBishop2", "w", bishopImg_w, (500, 700), (1036, 401))
+    createPiece("wKnight2", "w", knightImg_w, (600, 700), (1066, 401))
+    createPiece("wRook2", "w", rookImg_w, (700, 700), (1096, 401))
     # black
-    createPiece("bPawn1", "b", pawnImg_b, (0, 100))
-    createPiece("bPawn2", "b", pawnImg_b, (100, 100))
-    createPiece("bPawn3", "b", pawnImg_b, (200, 100))
-    createPiece("bPawn4", "b", pawnImg_b, (300, 100))
-    createPiece("bPawn5", "b", pawnImg_b, (400, 100))
-    createPiece("bPawn6", "b", pawnImg_b, (500, 100))
-    createPiece("bPawn7", "b", pawnImg_b, (600, 100))
-    createPiece("bPawn8", "b", pawnImg_b, (700, 100))
-    createPiece("bRook1", "b", rookImg_b, (0, 0))
-    createPiece("bKnight1", "b", knightImg_b, (100, 0))
-    createPiece("bBishop1", "b", bishopImg_b, (200, 0))
-    createPiece("bQueen", "b", queenImg_b, (300, 0))
-    createPiece("bKing", "b", kingImg_b, (400, 0))
-    createPiece("bBishop2", "b", bishopImg_b, (500, 0))
-    createPiece("bKnight2", "b", knightImg_b, (600, 0))
-    createPiece("bRook2", "b", rookImg_b, (700, 0))
+    createPiece("bPawn1", "b", pawnImg_b, (0, 100), (886, 251))
+    createPiece("bPawn2", "b", pawnImg_b, (100, 100), (916, 251))
+    createPiece("bPawn3", "b", pawnImg_b, (200, 100), (946, 251))
+    createPiece("bPawn4", "b", pawnImg_b, (300, 100), (976, 251))
+    createPiece("bPawn5", "b", pawnImg_b, (400, 100), (1006, 251))
+    createPiece("bPawn6", "b", pawnImg_b, (500, 100), (1036, 251))
+    createPiece("bPawn7", "b", pawnImg_b, (600, 100), (1066, 251))
+    createPiece("bPawn8", "b", pawnImg_b, (700, 100), (1096, 251))
+    createPiece("bRook1", "b", rookImg_b, (0, 0), (886, 212))
+    createPiece("bKnight1", "b", knightImg_b, (100, 0), (916, 212))
+    createPiece("bBishop1", "b", bishopImg_b, (200, 0), (946, 212))
+    createPiece("bQueen", "b", queenImg_b, (300, 0), (976, 212))
+    createPiece("bKing", "b", kingImg_b, (400, 0), (1006, 212))
+    createPiece("bBishop2", "b", bishopImg_b, (500, 0), (1036, 212))
+    createPiece("bKnight2", "b", knightImg_b, (600, 0), (1066, 212))
+    createPiece("bRook2", "b", rookImg_b, (700, 0), (1096, 212))
 
 # draws the board to the screen and every piece that is on top of it
 def drawGameBoard():
+    # menu stuff first
     screen.fill((180, 180, 180))
     screen.blit(boardImg, (0, 0))
+    if whiteTurn:
+        screen.blit(whiteTurnText, (880, 100))
+    else:
+        screen.blit(blackTurnText, (880, 100))
+    screen.blit(blackPiecesImg, (880, 200))
+    screen.blit(whitePiecesImg, (880, 350))
+    screen.blit(pvpButtonImg, (880, 600))
+    screen.blit(pvbButtonImg, (1033, 600))
+    screen.blit(pvpText, (881, 700))
+    screen.blit(pvbText, (1042, 700))
+    if pvp:
+        screen.blit(blackLineImg, (881, 676))
+    else:
+        screen.blit(blackLineImg, (1034, 676))
+    # pieces
     for p in blackPieces:
         if blackPieces[p].alive:
             screen.blit(blackPieces[p].img, blackPieces[p].position)
+        else:
+            screen.blit(redXImg, blackPieces[p].redXpos) # 30px horizontally 39px vertically
     for p in whitePieces:
         if whitePieces[p].alive:
             screen.blit(whitePieces[p].img, whitePieces[p].position)
+        else:
+            screen.blit(redXImg, whitePieces[p].redXpos)
     if moving:
         drawValidMoves()
         #draw the moving piece on top always
@@ -431,16 +460,6 @@ def drawGameBoard():
             screen.blit(blackPieces[movingName].img, blackPieces[movingName].position)
         if movingColor == "w":
             screen.blit(whitePieces[movingName].img, whitePieces[movingName].position)
-    screen.blit(turnText, (880, 100))
-    screen.blit(blackPiecesImg, (880, 200))
-    screen.blit(whitePiecesImg, (880, 350))
-    screen.blit(redXImg, (886, 212)) # 30px horizontally 39px vertically
-    screen.blit(redXImg, (916, 212))
-    screen.blit(redXImg, (916, 251))
-    screen.blit(pvpButtonImg, (880, 600))
-    screen.blit(pvbButtonImg, (1033, 600))
-    screen.blit(pvpText, (881, 700))
-    screen.blit(pvbText, (1042, 700))
 
 # when moving a piece automatically snap to grid
 def snapPiece(relativeLoc):
@@ -502,12 +521,29 @@ while True:
         movingLoc = (mouseLoc[0] - TILE_SIZE / 2, mouseLoc[1] - TILE_SIZE / 2)
         snapPiece(mouseLoc)
     
+    if mouseHold and pvpRect.collidepoint(mouseLoc):
+        pvpButtonImg.set_alpha(128)
+    elif pvpRect.collidepoint(mouseLoc):
+        pvpButtonImg.set_alpha(200)
+    elif mouseHold and pvbRect.collidepoint(mouseLoc):
+        pvbButtonImg.set_alpha(128)
+    elif pvbRect.collidepoint(mouseLoc):
+        pvbButtonImg.set_alpha(200)
+    else:
+        pvpButtonImg.set_alpha(256)
+        pvbButtonImg.set_alpha(256)
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
         if event.type == MOUSEBUTTONDOWN:
+            mouseHold = True
             if event.button == 1:
+                if pvpRect.collidepoint(mouseLoc):
+                    pvp = True
+                elif pvbRect.collidepoint(mouseLoc):
+                    pvp = False
                 if moving:
                     newPos = (math.floor(mouseLoc[0] / 100) * 100, math.floor(mouseLoc[1] / 100) * 100)
                     if movingColor == "b":
@@ -561,6 +597,8 @@ while True:
                             movingName = p
                             movingColor = "w"
                             clickedLoc = whitePieces[p].position
+        if event.type == MOUSEBUTTONUP:
+            mouseHold = False
 
     pygame.display.update()
     clock.tick(FPS_LIMIT)
