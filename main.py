@@ -466,10 +466,10 @@ def snapPiece(relativeLoc):
     newPos = (math.floor(relativeLoc[0] / 100) * 100, math.floor(relativeLoc[1] / 100) * 100)
     if movingColor == "b":
         blackPieces[movingName].position = newPos
-        blackPieces[movingName].hitbox.topleft = newPos
+        #blackPieces[movingName].hitbox.topleft = newPos
     if movingColor == "w":
         whitePieces[movingName].position = newPos
-        whitePieces[movingName].hitbox.topleft = newPos
+        #whitePieces[movingName].hitbox.topleft = newPos
 
 # draws valid moves to the screen
 def drawValidMoves():
@@ -521,6 +521,7 @@ while True:
         movingLoc = (mouseLoc[0] - TILE_SIZE / 2, mouseLoc[1] - TILE_SIZE / 2)
         snapPiece(mouseLoc)
     
+    # handles pvp and pvb button hover/click "animation"
     if mouseHold and pvpRect.collidepoint(mouseLoc):
         pvpButtonImg.set_alpha(128)
     elif pvpRect.collidepoint(mouseLoc):
@@ -576,13 +577,23 @@ while True:
                         blackPieces[movingName].firstMove = False
                     elif movingColor == "w" and clickedLoc != newPos:
                         whitePieces[movingName].firstMove = False
+
+                    # change turns if they moved not in a pieces original position
+                    if (movingName in whitePieces and whitePieces[movingName].hitbox.topleft != newPos) or (movingName in blackPieces and blackPieces[movingName].hitbox.topleft != newPos):
+                        whiteTurn = not whiteTurn
+                        
+                    if movingColor == "b": 
+                        blackPieces[movingName].hitbox.topleft = newPos 
+                    else: 
+                        whitePieces[movingName].hitbox.topleft = newPos
+
                     moving = False
                     movingName = ""
                     movingColor = ""
                 else:
                     # go through every rectangle to see if they clicked on one
                     for p in blackPieces:
-                        if blackPieces[p].hitbox.collidepoint(event.pos):
+                        if blackPieces[p].hitbox.collidepoint(event.pos) and not whiteTurn:
                             # check what moves they can make
                             blackPieces[p].checkValidMoves()
                             moving = True
@@ -590,7 +601,7 @@ while True:
                             movingColor = "b"
                             clickedLoc = blackPieces[p].position
                     for p in whitePieces:
-                        if whitePieces[p].hitbox.collidepoint(event.pos):
+                        if whitePieces[p].hitbox.collidepoint(event.pos) and whiteTurn:
                             # check what moves they can make
                             whitePieces[p].checkValidMoves()
                             moving = True
